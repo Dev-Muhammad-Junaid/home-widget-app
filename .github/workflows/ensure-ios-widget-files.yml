@@ -1,1 +1,245 @@
- 
+name: Ensure iOS HomeWidget Files
+
+on:
+  workflow_dispatch:
+    inputs:
+      force_regenerate:
+        description: 'Force regenerate all iOS widget files'
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  contents: write
+  actions: read
+
+jobs:
+  ensure-ios-widget-files:
+    name: Ensure iOS HomeWidget Extension Files
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Configure Git
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+
+      - name: Check existing iOS widget files
+        id: check-existing
+        run: |
+          echo "Checking for existing iOS HomeWidget Extension files..."
+          
+          missing_files=()
+          
+          # Check critical files
+          [ ! -f "ios/HomeWidgetExtension/HomeWidgetExtension.swift" ] && missing_files+=("HomeWidgetExtension.swift")
+          [ ! -f "ios/HomeWidgetExtension/Info.plist" ] && missing_files+=("Info.plist")
+          [ ! -f "ios/HomeWidgetExtension/Intents.intentdefinition" ] && missing_files+=("Intents.intentdefinition")
+          [ ! -f "ios/HomeWidgetExtension/HomeWidgetExtension.entitlements" ] && missing_files+=("HomeWidgetExtension.entitlements")
+          [ ! -f "ios/Runner/Runner.entitlements" ] && missing_files+=("Runner.entitlements")
+          
+          if [ ${#missing_files[@]} -gt 0 ] || [ "${{ github.event.inputs.force_regenerate }}" = "true" ]; then
+            echo "needs_generation=true" >> $GITHUB_OUTPUT
+            if [ ${#missing_files[@]} -gt 0 ]; then
+              echo "❌ Missing iOS HomeWidget files detected:"
+              printf '%s\n' "${missing_files[@]}"
+            fi
+            if [ "${{ github.event.inputs.force_regenerate }}" = "true" ]; then
+              echo "🔄 Force regeneration requested"
+            fi
+          else
+            echo "needs_generation=false" >> $GITHUB_OUTPUT
+            echo "✅ All iOS HomeWidget Extension files are present"
+          fi
+
+      - name: Generate iOS HomeWidget Extension files
+        if: steps.check-existing.outputs.needs_generation == 'true'
+        run: |
+          echo "🍎 Generating iOS HomeWidget Extension files..."
+          chmod +x scripts/setup_homewidget_ios.sh
+          ./scripts/setup_homewidget_ios.sh
+
+      - name: Verify generated files
+        if: steps.check-existing.outputs.needs_generation == 'true'
+        run: |
+          echo "📋 Verifying generated files..."
+          
+          if [ -d "ios/HomeWidgetExtension" ]; then
+            echo "✅ iOS HomeWidget Extension directory created"
+            echo "Generated files:"
+            find ios/HomeWidgetExtension -type f | sort
+            echo ""
+            echo "File sizes:"
+            find ios/HomeWidgetExtension -type f -exec ls -lh {} \; | awk '{print $5, $9}'
+          else
+            echo "❌ Failed to create iOS HomeWidget Extension directory"
+            exit 1
+          fi
+
+      - name: Check for changes
+        if: steps.check-existing.outputs.needs_generation == 'true'
+        id: verify-changed-files
+        run: |
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "changed=true" >> $GITHUB_OUTPUT
+            echo "📝 Files were created/modified:"
+            git status --porcelain
+          else
+            echo "changed=false" >> $GITHUB_OUTPUT
+            echo "📱 No changes detected"
+          fi
+
+      - name: Commit and push changes
+        if: steps.check-existing.outputs.needs_generation == 'true' && steps.verify-changed-files.outputs.changed == 'true'
+        run: |
+          git add ios/ lib/ homewidget-config.env 2>/dev/null || true
+          
+          # Determine commit message based on trigger
+          if [ "${{ github.event.inputs.force_regenerate }}" = "true" ]; then
+            commit_msg="🔄 [Manual] Force regenerate iOS HomeWidget Extension files"
+          else
+            commit_msg="🍎 [Manual] Generate iOS HomeWidget Extension files"
+          fi
+          
+          git commit -m "$commit_msg
+
+          Automated iOS HomeWidget Extension file generation:
+          - ✅ HomeWidgetExtension.swift (SwiftUI implementation)
+          - ✅ Info.plist (Extension configuration)
+          - ✅ Intents.intentdefinition (Widget configuration UI)
+          - ✅ HomeWidgetExtension.entitlements (App Group permissions)
+          - ✅ Runner.entitlements (App Group configuration)
+          - ✅ Flutter integration files updated
+          
+          This ensures iOS home widget functionality is always available
+          even when FlutterFlow exports don't include these files.
+          
+          Triggered by: ${{ github.event_name }}
+          Branch: ${{ github.ref_name }}
+          Commit: ${{ github.sha }}"
+          
+          git push origin ${{ github.ref_name }}
+
+      - name: Create summary
+        run: |
+          echo "## 📱 iOS HomeWidget Extension Status" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          if [ "${{ steps.check-existing.outputs.needs_generation }}" = "true" ]; then
+            if [ "${{ steps.verify-changed-files.outputs.changed }}" = "true" ]; then
+              echo "### ✅ iOS HomeWidget Extension Files Generated Successfully!" >> $GITHUB_STEP_SUMMARY
+              echo "" >> $GITHUB_STEP_SUMMARY
+              echo "**Trigger**: ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
+              echo "**Branch**: ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
+              echo "**Timestamp**: $(date -u)" >> $GITHUB_STEP_SUMMARY
+              echo "" >> $GITHUB_STEP_SUMMARY
+              echo "#### 📁 Generated Files:" >> $GITHUB_STEP_SUMMARY
+              echo "- 🎯 HomeWidgetExtension.swift" >> $GITHUB_STEP_SUMMARY
+              echo "- 📄 Info.plist" >> $GITHUB_STEP_SUMMARY
+              echo "- 🎛️ Intents.intentdefinition" >> $GITHUB_STEP_SUMMARY
+              echo "- 🔐 HomeWidgetExtension.entitlements" >> $GITHUB_STEP_SUMMARY
+              echo "- ⚙️ Runner.entitlements" >> $GITHUB_STEP_SUMMARY
+              echo "- 📋 homewidget-config.env" >> $GITHUB_STEP_SUMMARY
+            else
+              echo "### ⚠️ Generation Attempted But No Changes Detected" >> $GITHUB_STEP_SUMMARY
+              echo "Files may already be up to date." >> $GITHUB_STEP_SUMMARY
+            fi
+          else
+            echo "### ✅ All iOS HomeWidget Extension Files Present" >> $GITHUB_STEP_SUMMARY
+            echo "No generation needed - all files are already in place." >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "#### 🎯 Widget Features Available:" >> $GITHUB_STEP_SUMMARY
+          echo "- 📏 Multiple widget sizes (Small, Medium, Large)" >> $GITHUB_STEP_SUMMARY
+          echo "- 🔄 Real-time updates from Flutter app" >> $GITHUB_STEP_SUMMARY
+          echo "- ⚙️ User-configurable title and description" >> $GITHUB_STEP_SUMMARY
+          echo "- 🎨 Native SwiftUI design" >> $GITHUB_STEP_SUMMARY
+          echo "- 📱 App Group data sharing" >> $GITHUB_STEP_SUMMARY
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "#### 🔧 Next Steps:" >> $GITHUB_STEP_SUMMARY
+          echo "1. Open Xcode: \`cd ios && open Runner.xcworkspace\`" >> $GITHUB_STEP_SUMMARY
+          echo "2. Add HomeWidgetExtension target" >> $GITHUB_STEP_SUMMARY
+          echo "3. Configure App Groups in both targets" >> $GITHUB_STEP_SUMMARY
+          echo "4. Build and test your widget!" >> $GITHUB_STEP_SUMMARY
+
+  # Optional: Check widget integration health
+  check-integration:
+    name: Check Widget Integration Health
+    runs-on: ubuntu-latest
+    needs: ensure-ios-widget-files
+    if: always()
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Analyze widget integration
+        run: |
+          echo "🔍 Analyzing iOS HomeWidget integration health..."
+          
+          # Check pubspec.yaml for home_widget dependency
+          if grep -q "home_widget:" pubspec.yaml; then
+            echo "✅ home_widget package found in pubspec.yaml"
+            WIDGET_VERSION=$(grep "home_widget:" pubspec.yaml | sed 's/.*home_widget: *//' | sed 's/ *#.*//')
+            echo "   Version: $WIDGET_VERSION"
+          else
+            echo "⚠️  home_widget package not found in pubspec.yaml"
+          fi
+          
+          # Check Flutter integration files
+          if [ -f "lib/custom_code/actions/home_screen_widget.dart" ]; then
+            echo "✅ Flutter home_screen_widget.dart found"
+            if grep -q "group.com.example.homewidget" lib/custom_code/actions/home_screen_widget.dart; then
+              echo "   ✅ Correct App Group ID configured"
+            else
+              echo "   ⚠️  App Group ID might need updating"
+            fi
+          else
+            echo "⚠️  Flutter home_screen_widget.dart not found"
+          fi
+          
+          if [ -f "lib/custom_code/actions/initialize_home_widget.dart" ]; then
+            echo "✅ Flutter initialize_home_widget.dart found"
+          else
+            echo "⚠️  Flutter initialize_home_widget.dart not found"
+          fi
+          
+          # Check iOS files
+          ios_files=(
+            "ios/HomeWidgetExtension/HomeWidgetExtension.swift"
+            "ios/HomeWidgetExtension/Info.plist"
+            "ios/HomeWidgetExtension/Intents.intentdefinition"
+            "ios/HomeWidgetExtension/HomeWidgetExtension.entitlements"
+            "ios/Runner/Runner.entitlements"
+          )
+          
+          echo ""
+          echo "📱 iOS HomeWidget Extension files:"
+          for file in "${ios_files[@]}"; do
+            if [ -f "$file" ]; then
+              echo "   ✅ $file"
+            else
+              echo "   ❌ $file (missing)"
+            fi
+          done
+
+      - name: Integration health summary
+        run: |
+          echo "## 🔍 iOS HomeWidget Integration Health Check" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Checked at**: $(date -u)" >> $GITHUB_STEP_SUMMARY
+          echo "**Branch**: ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 📋 Integration Status:" >> $GITHUB_STEP_SUMMARY
+          echo "- Flutter package dependency: $(if grep -q 'home_widget:' pubspec.yaml; then echo '✅ Configured'; else echo '❌ Missing'; fi)" >> $GITHUB_STEP_SUMMARY
+          echo "- Flutter actions: $(if [ -f 'lib/custom_code/actions/home_screen_widget.dart' ]; then echo '✅ Present'; else echo '❌ Missing'; fi)" >> $GITHUB_STEP_SUMMARY
+          echo "- iOS extension files: $(if [ -f 'ios/HomeWidgetExtension/HomeWidgetExtension.swift' ]; then echo '✅ Present'; else echo '❌ Missing'; fi)" >> $GITHUB_STEP_SUMMARY
+          echo "- App Group configuration: $(if [ -f 'ios/Runner/Runner.entitlements' ] && grep -q 'group.com.example.homewidget' ios/Runner/Runner.entitlements; then echo '✅ Configured'; else echo '⚠️ Needs attention'; fi)" >> $GITHUB_STEP_SUMMARY 
