@@ -1,0 +1,34 @@
+{
+  "home_screen_widget.dart": {
+    "old_identifier_name": "homeScreenWidget",
+    "new_identifier_name": "homeScreenWidget",
+    "type": "A",
+    "is_deleted": false,
+    "current_checksum": "04c3640853d2beb2b5260aae560fba54baff8dc311b486117a815d3df5578aaa",
+    "original_checksum": "04c3640853d2beb2b5260aae560fba54baff8dc311b486117a815d3df5578aaa"
+  },
+  "initialize_home_widget.dart": {
+    "old_identifier_name": "initializeHomeWidget",
+    "new_identifier_name": "initializeHomeWidget",
+    "type": "A",
+    "is_deleted": false,
+    "current_checksum": "58d9673854d2a99715a16382dd744b5ec3316fa106b88d26d378043e3b7d77be",
+    "original_checksum": "58d9673854d2a99715a16382dd744b5ec3316fa106b88d26d378043e3b7d77be"
+  },
+  "custom_functions.dart": {
+    "old_identifier_name": "CustomFunctions",
+    "new_identifier_name": "CustomFunctions",
+    "type": "F",
+    "is_deleted": false,
+    "current_checksum": "415688756283460139fa2817ca006943c32a3ceb940e28ef903ca9cef86a1b08",
+    "original_checksum": "415688756283460139fa2817ca006943c32a3ceb940e28ef903ca9cef86a1b08"
+  },
+  "pubspec.yaml": {
+    "old_identifier_name": "pubspec.yaml",
+    "new_identifier_name": "pubspec.yaml",
+    "type": "D",
+    "is_deleted": false,
+    "current_checksum": "034fd9134dc8d3bed5e358628c7de814dca3698dfcbd6eb602b19c581e35cb56",
+    "original_checksum": "034fd9134dc8d3bed5e358628c7de814dca3698dfcbd6eb602b19c581e35cb56"
+  }
+}
