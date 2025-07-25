@@ -39,6 +39,8 @@
     <string>$(FLUTTER_BUILD_NUMBER)</string>
     <key>LSRequiresIPhoneOS</key>
     <true/>
+    <key>NSContactsUsageDescription</key>
+    <string>give me contacts</string>
     <!-- Start of NSExtension -->
     <key>NSExtension</key>
     <dict>
