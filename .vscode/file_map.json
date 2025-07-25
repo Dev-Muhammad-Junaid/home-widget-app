@@ -4,7 +4,7 @@
     "new_identifier_name": "homeScreenWidget",
     "type": "A",
     "is_deleted": false,
-    "current_checksum": "04c3640853d2beb2b5260aae560fba54baff8dc311b486117a815d3df5578aaa",
+    "current_checksum": "dead7e815c212f92513e05625cb0807c7c1fc4244eb01367ca8240c2c88c19fd",
     "original_checksum": "04c3640853d2beb2b5260aae560fba54baff8dc311b486117a815d3df5578aaa"
   },
   "initialize_home_widget.dart": {
@@ -12,7 +12,7 @@
     "new_identifier_name": "initializeHomeWidget",
     "type": "A",
     "is_deleted": false,
-    "current_checksum": "58d9673854d2a99715a16382dd744b5ec3316fa106b88d26d378043e3b7d77be",
+    "current_checksum": "2ea1ce93fae923fec679fca4a5def98e3f7e270a25ff401ca6e8ea376a32f9ff",
     "original_checksum": "58d9673854d2a99715a16382dd744b5ec3316fa106b88d26d378043e3b7d77be"
   },
   "custom_functions.dart": {
@@ -28,7 +28,7 @@
     "new_identifier_name": "pubspec.yaml",
     "type": "D",
     "is_deleted": false,
-    "current_checksum": "034fd9134dc8d3bed5e358628c7de814dca3698dfcbd6eb602b19c581e35cb56",
-    "original_checksum": "034fd9134dc8d3bed5e358628c7de814dca3698dfcbd6eb602b19c581e35cb56"
+    "current_checksum": "59732f54d70c0cd83a4068dcb5d65fc59cfe9093873531324143446c56c0ed42",
+    "original_checksum": "59732f54d70c0cd83a4068dcb5d65fc59cfe9093873531324143446c56c0ed42"
   }
 }
