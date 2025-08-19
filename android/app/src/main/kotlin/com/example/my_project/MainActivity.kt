@@ -1,4 +1,4 @@
-package com.mycompany.homewidget
+package com.betterbrainapp.homewidget
 
 import io.flutter.embedding.android.FlutterActivity
 

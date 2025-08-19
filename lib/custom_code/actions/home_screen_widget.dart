@@ -14,45 +14,31 @@ Future homeScreenWidget(
   int? count,
 ) async {
   try {
-    // Configure app group for iOS (required for data sharing with widget extension)
-    await HomeWidget.setAppGroupId('group.com.example.homewidget');
-    
-    // Save widget data with iOS-compatible keys
+    // Save widget data
     if (title != null) {
-      await HomeWidget.saveWidgetData<String>('widget_title', title);
+      await HomeWidget.saveWidgetData<String>('title', title);
     }
 
     if (message != null) {
-      await HomeWidget.saveWidgetData<String>('widget_description', message);
+      await HomeWidget.saveWidgetData<String>('message', message);
     }
 
     if (count != null) {
-      await HomeWidget.saveWidgetData<int>('widget_count', count);
+      await HomeWidget.saveWidgetData<int>('count', count);
     }
 
     // Save timestamp for "last updated"
     await HomeWidget.saveWidgetData<String>(
-        'widget_last_updated', DateTime.now().toIso8601String());
-
-    // Save additional data for different widget sizes
-    await HomeWidget.saveWidgetData<String>(
-        'widget_status', 'Active');
-    
-    await HomeWidget.saveWidgetData<String>(
-        'widget_updated_time', 
-        DateTime.now().toString().split(' ').last.substring(0, 5)); // HH:MM format
+        'lastUpdated', DateTime.now().toIso8601String());
 
     // Update the widget on both platforms
     await HomeWidget.updateWidget(
-      name: 'HomeWidgetExtension', // Android widget name
-      iOSName: 'HomeWidgetExtension', // iOS widget name (matches our extension)
-      androidName: 'HomeWidgetExtension', // Android widget name
+      name: 'HomeWidget', // Android widget name
+      iOSName: 'HomeWidget', // iOS widget name
+      androidName: 'HomeWidget', // Android widget name (alternative)
     );
 
     print('HomeWidget updated successfully');
-    print('Title: $title');
-    print('Message: $message');
-    print('Count: $count');
   } catch (e) {
     print('Error updating HomeWidget: $e');
     throw e;
